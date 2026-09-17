@@ -1,1 +1,242 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดการธุรกิจอเนกประสงค์</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
 
+  <!-- Container หลัก: บนมือถือเต็มจอ บนคอมจะล็อกความกว้างไว้ตรงกลางแบบหน้าจอมือถือ/แท็บเล็ต -->
+  <div class="max-w-md mx-auto min-h-screen bg-white shadow-xl flex flex-col">
+    
+    <!-- ส่วนหัว: เลือกและสลับธุรกิจ -->
+    <header class="p-4 bg-indigo-600 text-white shadow">
+      <div class="flex justify-between items-center mb-2">
+        <h1 class="text-lg font-bold">จัดการธุรกิจ</h1>
+        <button onclick="addNewBusiness()" class="bg-indigo-700 hover:bg-indigo-800 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-400">
+          + เพิ่มธุรกิจ
+        </button>
+      </div>
+      <label class="block text-xs text-indigo-200 mb-1">ธุรกิจที่เลือกอยู่:</label>
+      <select id="businessSelect" onchange="switchBusiness()" class="w-full bg-white text-slate-900 rounded-lg p-2 font-medium text-sm outline-none">
+      </select>
+    </header>
+
+    <!-- เนื้อหาหลัก -->
+    <main class="p-4 flex-1 space-y-6">
+
+      <!-- กล่องจัดการออปชัน/ฟิลด์ของธุรกิจนี้ -->
+      <section class="border border-slate-200 rounded-xl p-3.5 bg-slate-50">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-sm font-bold text-slate-700">ออปชันเฉพาะของธุรกิจนี้</h2>
+          <button onclick="addCustomField()" class="text-xs text-indigo-600 font-semibold hover:underline">
+            + เพิ่มฟิลด์
+          </button>
+        </div>
+        <div id="fieldsList" class="flex flex-wrap gap-1.5">
+          <!-- แสดงป้ายชื่อฟิลด์ที่กำหนดไว้ -->
+        </div>
+      </section>
+
+      <!-- ฟอร์มบันทึกรายการสินค้า/ออเดอร์ (สร้างฟิลด์ตามออปชันอัตโนมัติ) -->
+      <section class="space-y-3">
+        <h2 class="text-sm font-bold text-slate-700">บันทึกรายการใหม่</h2>
+        
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1">ชื่อรายการ / สินค้า</label>
+          <input id="itemTitle" type="text" placeholder="เช่น ไก่ทอดหาดใหญ่, การ์ดลายดอกไม้" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500">
+        </div>
+
+        <!-- กล่อง Dynamic Fields ที่เรนเดอร์ตามธุรกิจ -->
+        <div id="dynamicFormFields" class="space-y-3"></div>
+
+        <button onclick="saveRecord()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg text-sm shadow">
+          บันทึกข้อมูล
+        </button>
+      </section>
+
+      <!-- รายการที่บันทึกแล้ว -->
+      <section>
+        <h2 class="text-sm font-bold text-slate-700 mb-2">ประวัติรายการที่บันทึก</h2>
+        <div id="recordsList" class="space-y-2">
+          <!-- แสดงการ์ดรายการที่บันทึก -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // ข้อมูลเริ่มต้นพร้อมตัวอย่างธุรกิจไก่ทอดและการ์ดแต่งงาน
+    let appData = JSON.parse(localStorage.getItem('bizAppData')) || {
+      currentBizId: "biz_1",
+      businesses: [
+        {
+          id: "biz_1",
+          name: "ธุรกิจไก่ทอด",
+          fields: [
+            { id: "f1", name: "ระดับความเผ็ด", placeholder: "เผ็ดน้อย / ปกติ / พ่นไฟ" },
+            { id: "f2", name: "ชิ้นส่วน", placeholder: "น่อง / สะโพก / ปีก" }
+          ],
+          records: []
+        },
+        {
+          id: "biz_2",
+          name: "ธุรกิจการ์ดแต่งงาน & ของชำร่วย",
+          fields: [
+            { id: "f3", name: "ขนาดการ์ด", placeholder: "4x6 นิ้ว / 5x7 นิ้ว" },
+            { id: "f4", name: "ประเภทกระดาษ", placeholder: "การ์ดมุก / การ์ดคราฟต์" },
+            { id: "f5", name: "จำนวนของชำร่วย (ชิ้น)", placeholder: "เช่น 100, 300" }
+          ],
+          records: []
+        }
+      ]
+    };
+
+    function saveState() {
+      localStorage.setItem('bizAppData', JSON.stringify(appData));
+    }
+
+    function getCurrentBusiness() {
+      return appData.businesses.find(b => b.id === appData.currentBizId) || appData.businesses[0];
+    }
+
+    // เรนเดอร์ Dropdown เลือกธุรกิจ
+    function renderBusinessSelect() {
+      const select = document.getElementById('businessSelect');
+      select.innerHTML = '';
+      appData.businesses.forEach(biz => {
+        const option = document.createElement('option');
+        option.value = biz.id;
+        option.textContent = biz.name;
+        option.selected = biz.id === appData.currentBizId;
+        select.appendChild(option);
+      });
+    }
+
+    // สลับธุรกิจ
+    function switchBusiness() {
+      appData.currentBizId = document.getElementById('businessSelect').value;
+      saveState();
+      renderUI();
+    }
+
+    // เพิ่มธุรกิจใหม่
+    function addNewBusiness() {
+      const name = prompt("ตั้งชื่อธุรกิจใหม่ (เช่น ธุรกิจล้างรถ, ร้านกาแฟ):");
+      if (!name) return;
+      const newId = "biz_" + Date.now();
+      appData.businesses.push({
+        id: newId,
+        name: name,
+        fields: [],
+        records: []
+      });
+      appData.currentBizId = newId;
+      saveState();
+      renderBusinessSelect();
+      renderUI();
+    }
+
+    // เพิ่มออปชันใหม่ให้ธุรกิจปัจจุบัน
+    function addCustomField() {
+      const fieldName = prompt("ตั้งชื่อออปชันที่ต้องการบันทึก (เช่น น้ำหนัก, วันส่งมอบ, สี):");
+      if (!fieldName) return;
+      const biz = getCurrentBusiness();
+      biz.fields.push({
+        id: "f_" + Date.now(),
+        name: fieldName,
+        placeholder: `กรอก ${fieldName}`
+      });
+      saveState();
+      renderUI();
+    }
+
+    // บันทึกข้อมูลสินค้า/รายการ
+    function saveRecord() {
+      const titleInput = document.getElementById('itemTitle');
+      if (!titleInput.value.trim()) {
+        alert("กรุณากรอกชื่อรายการ");
+        return;
+      }
+
+      const biz = getCurrentBusiness();
+      const customData = {};
+      
+      biz.fields.forEach(field => {
+        const input = document.getElementById(`dynamic_${field.id}`);
+        customData[field.name] = input ? input.value : "";
+      });
+
+      biz.records.unshift({
+        id: "rec_" + Date.now(),
+        title: titleInput.value,
+        timestamp: new Date().toLocaleDateString('th-TH'),
+        data: customData
+      });
+
+      titleInput.value = "";
+      biz.fields.forEach(field => {
+        const input = document.getElementById(`dynamic_${field.id}`);
+        if (input) input.value = "";
+      });
+
+      saveState();
+      renderRecords();
+    }
+
+    // เรนเดอร์หน้าจอตามธุรกิจที่เลือก
+    function renderUI() {
+      const biz = getCurrentBusiness();
+
+      // 1. รายชื่อป้ายออปชัน
+      const fieldsList = document.getElementById('fieldsList');
+      fieldsList.innerHTML = biz.fields.length === 0 
+        ? '<span class="text-xs text-slate-400">ยังไม่มีออปชันเฉพาะ กดเพิ่มฟิลด์ด้านบนได้เลย</span>'
+        : biz.fields.map(f => `<span class="bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-full font-medium">${f.name}</span>`).join('');
+
+      // 2. เรนเดอร์ฟิลด์สำหรับกรอกข้อมูล
+      const dynamicFieldsContainer = document.getElementById('dynamicFormFields');
+      dynamicFieldsContainer.innerHTML = biz.fields.map(f => `
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1">${f.name}</label>
+          <input id="dynamic_${f.id}" type="text" placeholder="${f.placeholder}" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-indigo-500">
+        </div>
+      `).join('');
+
+      renderRecords();
+    }
+
+    // แสดงประวัติรายการ
+    function renderRecords() {
+      const biz = getCurrentBusiness();
+      const recordsContainer = document.getElementById('recordsList');
+      
+      if (!biz.records || biz.records.length === 0) {
+        recordsContainer.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">ยังไม่มีรายการที่บันทึกไว้</p>';
+        return;
+      }
+
+      recordsContainer.innerHTML = biz.records.map(rec => `
+        <div class="border border-slate-200 rounded-xl p-3 bg-white">
+          <div class="flex justify-between items-start mb-1.5">
+            <h3 class="font-semibold text-slate-800 text-sm">${rec.title}</h3>
+            <span class="text-[11px] text-slate-400">${rec.timestamp}</span>
+          </div>
+          <div class="space-y-1 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg">
+            ${Object.entries(rec.data).map(([key, value]) => `
+              <div><span class="font-medium text-slate-700">${key}:</span> ${value || '-'}</div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // เริ่มต้นระบบ
+    renderBusinessSelect();
+    renderUI();
+  </script>
+</body>
+</html>
