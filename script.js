@@ -897,6 +897,10 @@ function renderDashboard() {
             document.getElementById('bucket1Pct').textContent = `${((bucket1Cost / totalRevenue) * 100).toFixed(1)}%`;
             document.getElementById('bucket2Pct').textContent = `${((bucket2Cost / totalRevenue) * 100).toFixed(1)}%`;
             document.getElementById('bucket3Pct').textContent = `${((displayProfit / totalRevenue) * 100).toFixed(1)}%`;
+        } else {
+            document.getElementById('bucket1Pct').textContent = '0%';
+            document.getElementById('bucket2Pct').textContent = '0%';
+            document.getElementById('bucket3Pct').textContent = '0%';
         }
 
         renderHistoryList(filtered);
@@ -924,13 +928,13 @@ function filterTransactions() {
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
 
-    const mondayStr = monday.toISOString().split('T')[0];
-    const sundayStr = sunday.toISOString().split('T')[0];
+    const mondayStr = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+    const sundayStr = `${sunday.getFullYear()}-${String(sunday.getMonth() + 1).padStart(2, '0')}-${String(sunday.getDate()).padStart(2, '0')}`;
 
     return txs.filter(tx => {
         if (filterType === 'income' && !['income', 'รายรับ', 'โอนเข้า'].includes(tx.type)) return false;
         if (filterType === 'expense' && !['expense', 'รายจ่าย', 'โอนออก'].includes(tx.type)) return false;
-        if (filterType === 'transfer' && !tx.isTransfer) return false;
+        if (filterType === 'transfer' && !['transfer', 'โอนเข้า', 'โอนออก'].includes(tx.type)) return false;
 
         if (searchQuery && !(tx.name || '').toLowerCase().includes(searchQuery) && !(tx.category || '').toLowerCase().includes(searchQuery)) return false;
 
@@ -1032,17 +1036,119 @@ function runDeepAnalytics() {
     document.getElementById('anCostRatio').textContent = rev > 0 ? `${((exp/rev)*100).toFixed(1)}%` : '0%';
 }
 
+// ส่งออก Excel มาตรฐาน 4 ชีท
 function exportAccountingBookExcel() {
     const txs = allTransactions[activeWalletId] || [];
-    if (!txs.length) { alert('ไม่มีข้อมูล'); return; }
-    const ws = XLSX.utils.json_to_sheet(txs);
+    if (!txs.length) { alert('ไม่มีข้อมูลสำหรับจัดทำสมุดบัญชี'); return; }
+
+    const walletObj = wallets.find(w => w.id === activeWalletId) || { name: 'หน้าร้าน', type: 'business' };
+    const sortedTxs = [...txs].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    let totalSales = 0, totalCOGS = 0, totalOpex = 0;
+    const cogsCats = ['เนื้อสัตว์', 'ข้าว/แป้ง', 'เครื่องปรุง/วัตถุดิบอื่นๆ', 'วัตถุดิบ/ของสด', 'ของสด', 'วัตถุดิบและของใช้'];
+
+    sortedTxs.forEach(t => {
+        const amt = parseFloat(t.amount) || 0;
+        if (['income', 'รายรับ'].includes(t.type)) totalSales += amt;
+        else if (['expense', 'รายจ่าย'].includes(t.type)) {
+            if (cogsCats.includes(t.category)) totalCOGS += amt;
+            else totalOpex += amt;
+        }
+    });
+
+    const plRows = [
+        ['รายงานงบกำไรขาดทุน / สรุปรายรับรายจ่าย'],
+        [`กระเป๋า: ${walletObj.name}`, '', `จัดทำเมื่อ: ${getTodayDate()}`],
+        [],
+        ['รายการบัญชี', 'จำนวนเงิน (บาท)', 'สัดส่วน %'],
+        ['1. รายรับทั้งหมด', totalSales, '100%'],
+        ['2. หัก: ต้นทุนวัตถุดิบหลัก', totalCOGS, `${totalSales > 0 ? ((totalCOGS/totalSales)*100).toFixed(1) : 0}%`],
+        ['3. หัก: ค่าใช้จ่ายดำเนินงาน', totalOpex, `${totalSales > 0 ? ((totalOpex/totalSales)*100).toFixed(1) : 0}%`],
+        ['4. กำไรสุทธิคงเหลือ', totalSales - (totalCOGS + totalOpex), `${totalSales > 0 ? (((totalSales - (totalCOGS + totalOpex))/totalSales)*100).toFixed(1) : 0}%`]
+    ];
+
+    const ledgerRows = [['วันที่', 'รายการ', 'ช่องทาง', 'หมวดหมู่', 'จำนวนเงิน', 'หมายเหตุ']];
+    sortedTxs.forEach(t => {
+        ledgerRows.push([t.date || '', t.name || '', t.paymentMethod || 'cash', t.category || '', parseFloat(t.amount) || 0, t.note || '']);
+    });
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Transactions");
-    XLSX.writeFile(wb, `Accounting_${getTodayDate()}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(plRows), 'งบกำไรขาดทุน');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ledgerRows), 'สมุดรายรับรายจ่าย');
+    XLSX.writeFile(wb, `Accounting_${walletObj.name}_${getTodayDate()}.xlsx`);
+    showAlert('ส่งออกสมุดบัญชีมาตรฐานสำเร็จ');
 }
 
-function exportAccountingCSV() { exportAccountingBookExcel(); }
-function importModularFile(e) { alert('ใช้ฟังก์ชันนำเข้าผ่านหน้าเว็บหลัก'); }
+// นำเข้าไฟล์ Excel / CSV แบบเต็มระบบ
+function importModularFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        reader.onload = function(evt) {
+            try {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                let count = 0;
+                for (let i = 1; i < rows.length; i++) {
+                    const r = rows[i];
+                    if (!r || r.length === 0) continue;
+                    const cleanAmt = parseFloat(String(r[4] || r[5] || 0).replace(/,/g, '')) || 0;
+                    allTransactions[activeWalletId].push({
+                        id: 'imp_' + Date.now() + '_' + i,
+                        date: String(r[0] || getTodayDate()).trim(),
+                        name: String(r[1] || 'รายการนำเข้า').trim(),
+                        paymentMethod: String(r[2] || 'transfer').includes('สด') ? 'cash' : 'transfer',
+                        category: String(r[3] || 'ทั่วไป').trim(),
+                        type: 'expense',
+                        amount: cleanAmt,
+                        note: String(r[5] || '').trim()
+                    });
+                    count++;
+                }
+                saveAndRefresh(`นำเข้าสำเร็จ ${count} รายการ`);
+            } catch(err) { alert('อ่านไฟล์ Excel ไม่สำเร็จ: ' + err.message); }
+        };
+        reader.readAsArrayBuffer(file);
+    } else {
+        reader.onload = function(evt) {
+            try {
+                const lines = evt.target.result.split(/\r?\n/).filter(l => l.trim() !== '');
+                let count = 0;
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].split(',');
+                    if (cols.length >= 4) {
+                        allTransactions[activeWalletId].push({
+                            id: 'imp_csv_' + Date.now() + '_' + i,
+                            date: cols[0] || getTodayDate(),
+                            type: cols[1] || 'expense',
+                            category: cols[2] || 'ทั่วไป',
+                            name: cols[3] || 'รายการนำเข้า',
+                            amount: parseFloat(String(cols[5] || cols[4] || 0).replace(/,/g, '')) || 0,
+                            paymentMethod: 'cash'
+                        });
+                        count++;
+                    }
+                }
+                saveAndRefresh(`นำเข้าสำเร็จ ${count} รายการ`);
+            } catch(err) { alert('อ่านไฟล์ไม่สำเร็จ'); }
+        };
+        reader.readAsText(file);
+    }
+}
+
+function saveAndRefresh(msg) {
+    allTransactions[activeWalletId].sort((a, b) => new Date(b.date) - new Date(a.date));
+    localStorage.setItem('shop_all_transactions', JSON.stringify(allTransactions));
+    renderDashboard();
+    closeSettingsModal();
+    showAlert(msg);
+}
+
 function formatCurrency(a) { return '฿' + (a || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 }); }
 function formatNumber(a) { return (a || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 }); }
 function showAlert(msg) {
@@ -1054,9 +1160,10 @@ function showAlert(msg) {
     }
 }
 function clearAllHistoryData() {
-    if(confirm('ลบข้อมูลทั้งหมด?')) {
+    if(confirm('ลบข้อมูลทั้งหมดในกระเป๋านี้ใช่หรือไม่?')) {
         allTransactions[activeWalletId] = [];
         localStorage.setItem('shop_all_transactions', JSON.stringify(allTransactions));
         renderDashboard();
+        showAlert('ล้างข้อมูลกระเป๋าเรียบร้อยแล้ว');
     }
 }
