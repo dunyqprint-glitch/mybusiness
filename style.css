@@ -1,1 +1,11 @@
-
+body { 
+    font-family: 'Prompt', sans-serif; 
+    -webkit-tap-highlight-color: transparent; 
+}
+.num-font { font-family: 'JetBrains Mono', monospace; }
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+input, select, textarea { font-size: 15px !important; }
+@media print { nav, header, aside, #fabButton, .no-print { display: none !important; } }
