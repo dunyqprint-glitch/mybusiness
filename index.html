@@ -14,10 +14,6 @@
                     fontFamily: {
                         sans: ['Prompt', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace']
-                    },
-                    boxShadow: {
-                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
-                        'glow': '0 0 20px -5px var(--tw-shadow-color)'
                     }
                 }
             }
@@ -28,10 +24,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { 
-            font-family: 'Prompt', sans-serif; 
-            -webkit-tap-highlight-color: transparent; 
-        }
+        body { font-family: 'Prompt', sans-serif; -webkit-tap-highlight-color: transparent; }
         .num-font { font-family: 'JetBrains Mono', monospace; }
         .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -43,12 +36,11 @@
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 h-full flex flex-col lg:flex-row overflow-hidden transition-colors duration-300">
 
-    <!-- Desktop & Tablet Sidebar (แสดงเฉพาะหน้าจอขนาดใหญ่ >= 1024px) -->
+    <!-- Desktop Sidebar -->
     <aside class="hidden lg:flex flex-col justify-between w-64 xl:w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-5 shrink-0 z-40 select-none shadow-sm">
         <div class="space-y-6">
-            <!-- App Brand & Title -->
             <div class="flex items-center gap-3 px-1">
-                <div id="desktopBrandLogo" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
                     <i class="fa-solid fa-wallet text-lg"></i>
                 </div>
                 <div>
@@ -57,10 +49,10 @@
                 </div>
             </div>
 
-            <!-- Active Wallet Card Selector -->
+            <!-- Active Wallet Card -->
             <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
                 <div class="flex justify-between items-center">
-                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">กระเป๋าเงินปัจจุบัน</span>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">กระเป๋าปัจจุบัน</span>
                     <button onclick="openWalletModal()" class="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">สลับ</button>
                 </div>
                 <div onclick="openWalletModal()" class="cursor-pointer flex items-center gap-2.5">
@@ -68,7 +60,7 @@
                         <i id="deskActiveWalletIcon" class="fa-solid fa-store text-sm"></i>
                     </div>
                     <div class="truncate flex-1">
-                        <p id="deskActiveWalletTitle" class="text-xs font-bold truncate text-slate-800 dark:text-slate-100">โหลดข้อมูล...</p>
+                        <p id="deskActiveWalletTitle" class="text-xs font-bold truncate text-slate-800 dark:text-slate-100">กำลังโหลด...</p>
                         <p id="deskActiveWalletType" class="text-[10px] text-slate-400">กระเป๋ากิจการ</p>
                     </div>
                 </div>
@@ -93,6 +85,10 @@
 
         <!-- Sidebar Footer Action Tools -->
         <div class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
+            <button onclick="syncToGitHubRepo()" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-semibold shadow-sm transition border border-slate-700">
+                <span class="flex items-center gap-2"><i class="fa-brands fa-github text-sm"></i> สำรองขึ้น GitHub</span>
+                <span id="gitStatusBadgeDesk" class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded">Repo</span>
+            </button>
             <button onclick="exportAccountingBookExcel()" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition">
                 <span class="flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> ส่งออกสมุดบัญชี</span>
                 <span class="text-[9px] bg-white/20 px-1.5 py-0.5 rounded">.XLSX</span>
@@ -101,7 +97,7 @@
                 <button onclick="toggleDarkMode()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition">
                     <i id="deskDarkModeIcon" class="fa-solid fa-moon"></i> <span>ธีมสี</span>
                 </button>
-                <button onclick="openSettingsModal()" class="w-10 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="ตั้งค่าระบบ">
+                <button onclick="openSettingsModal()" class="w-10 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="ตั้งค่า GitHub & ข้อมูล">
                     <i class="fa-solid fa-gear text-xs"></i>
                 </button>
             </div>
@@ -114,7 +110,6 @@
         <!-- Mobile & Tablet Header Bar -->
         <header id="appHeader" class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-md z-30 shrink-0 transition-all duration-300">
             <div class="px-4 py-3 flex justify-between items-center max-w-7xl mx-auto w-full">
-                <!-- Wallet Selection Pill -->
                 <button onclick="openWalletModal()" class="px-3 py-1.5 bg-black/20 hover:bg-black/30 rounded-xl text-xs font-semibold flex items-center gap-2 transition active:scale-95 border border-white/20">
                     <div id="activeWalletIconWrapper" class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center">
                         <i id="activeWalletIcon" class="fa-solid fa-store text-white text-xs"></i>
@@ -128,41 +123,42 @@
                     <i class="fa-solid fa-chevron-down text-[9px] text-white/70 ml-0.5"></i>
                 </button>
 
-                <!-- Top Quick Tools -->
                 <div class="flex items-center gap-1.5">
+                    <button onclick="syncToGitHubRepo()" class="w-9 h-9 bg-black/20 hover:bg-black/30 rounded-xl flex items-center justify-center text-white transition active:scale-95 border border-white/10" title="สำรองขึ้น GitHub">
+                        <i class="fa-brands fa-github text-sm"></i>
+                    </button>
                     <button onclick="exportAccountingBookExcel()" class="w-9 h-9 bg-black/20 hover:bg-black/30 rounded-xl flex items-center justify-center text-white transition active:scale-95 border border-white/10" title="ส่งออกสมุดบัญชี (.xlsx)">
                         <i class="fa-solid fa-book-journal-whills text-xs"></i>
                     </button>
                     <button onclick="toggleDarkMode()" class="w-9 h-9 bg-black/20 hover:bg-black/30 rounded-xl flex items-center justify-center text-white transition active:scale-95 border border-white/10">
                         <i id="darkModeIcon" class="fa-solid fa-moon text-xs"></i>
                     </button>
-                    <button onclick="openSettingsModal()" class="w-9 h-9 bg-black/20 hover:bg-black/30 rounded-xl flex items-center justify-center text-white transition active:scale-95 border border-white/10">
+                    <button onclick="openSettingsModal()" class="w-9 h-9 bg-black/20 hover:bg-black/30 rounded-xl flex items-center justify-center text-white transition active:scale-95 border border-white/10" title="ตั้งค่า GitHub & ข้อมูล">
                         <i class="fa-solid fa-gear text-xs"></i>
                     </button>
                 </div>
             </div>
         </header>
 
-        <!-- Main Content Scrollable Area -->
+        <!-- Main Scrollable Area -->
         <main class="flex-1 overflow-y-auto custom-scrollbar p-3.5 sm:p-5 lg:p-6 space-y-4 pb-28 lg:pb-10 max-w-7xl mx-auto w-full">
             
-            <!-- Banner แจ้งเตือนสำรองข้อมูลอัตโนมัติ -->
-            <div id="backupReminderBanner" class="hidden p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 flex items-center justify-between text-xs">
+            <!-- Banner แจ้งเตือน GitHub Sync -->
+            <div id="gitReminderBanner" class="hidden p-3.5 rounded-2xl bg-slate-900 border border-slate-700 text-white flex items-center justify-between text-xs shadow-md">
                 <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-cloud-arrow-up text-amber-600 dark:text-amber-400 text-lg"></i>
+                    <i class="fa-brands fa-github text-emerald-400 text-xl"></i>
                     <div>
-                        <p class="font-bold">แนะนำให้สำรองข้อมูลบัญชี</p>
-                        <p class="text-[10px] text-slate-500 dark:text-slate-400">ยังไม่ได้สำรองไฟล์เกิน 7 วัน เพื่อป้องกันข้อมูลสูญหาย</p>
+                        <p class="font-bold">สำรองข้อมูลขึ้น GitHub Repository</p>
+                        <p class="text-[10px] text-slate-400" id="gitLastSyncText">ยังไม่ได้สำรองข้อมูลเข้า GitHub</p>
                     </div>
                 </div>
-                <button onclick="exportAccountingBookExcel()" class="px-3 py-1.5 bg-amber-500 text-slate-900 rounded-xl font-bold text-xs hover:bg-amber-400 transition whitespace-nowrap shadow-sm">
-                    สำรองทันที
+                <button onclick="syncToGitHubRepo()" class="px-3 py-1.5 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-500 transition whitespace-nowrap shadow-sm">
+                    Sync ทันที
                 </button>
             </div>
 
             <!-- Tab 1: Dashboard ภาพรวมประจำวัน -->
             <div id="tab-dashboard" class="space-y-4">
-                <!-- Filter Bar -->
                 <div class="bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800 flex flex-wrap gap-2.5 items-center justify-between">
                     <div class="flex items-center gap-2 w-full sm:w-auto">
                         <span class="text-xs font-semibold text-slate-400 flex items-center gap-1.5"><i class="fa-solid fa-filter"></i> ช่วงเวลา:</span>
@@ -181,7 +177,7 @@
                     </div>
                 </div>
 
-                <!-- KPI Cards Grid (2 Col บนมือถือ, 4 Col บนแท็บเล็ตและคอมพิวเตอร์) -->
+                <!-- KPI Cards Grid -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                     <div id="kpiCardIncome" class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-4 rounded-3xl shadow-sm transition-all duration-300">
                         <p id="kpiIncomeLabel" class="text-[11px] font-semibold text-white/80 uppercase">ยอดขายรวม</p>
@@ -255,7 +251,7 @@
                     </div>
                 </div>
 
-                <!-- กล่องสรุปกระทบยอด เงินสด vs เงินโอน (แก้บัคไม่ปนกับรายการโอนข้ามกระเป๋า) -->
+                <!-- กล่องสรุปกระทบยอด เงินสด vs เงินโอน -->
                 <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-sm border border-slate-200/80 dark:border-slate-800">
                     <div class="flex justify-between items-center mb-3">
                         <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
@@ -281,7 +277,7 @@
                     </div>
                 </div>
 
-                <!-- Charts Section (แสดงเป็น 2 คอลัมน์บนจอใหญ่) -->
+                <!-- Charts Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-sm border border-slate-200/80 dark:border-slate-800">
                         <h2 class="text-xs sm:text-sm font-bold mb-3 flex items-center gap-2">
@@ -338,7 +334,7 @@
                     </div>
                 </div>
 
-                <!-- Deep Financial Metrics -->
+                <!-- Financial Metrics -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
                         <p class="text-[10px] font-bold text-slate-400 uppercase">สัดส่วนรายจ่ายต่อรายรับ</p>
@@ -428,7 +424,7 @@
                             <span id="cancelEditBadge" class="hidden text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 px-2.5 py-1 rounded-lg cursor-pointer font-bold" onclick="cancelEditMode()">ยกเลิกการแก้ไข</span>
                         </div>
 
-                        <!-- Transaction Type: Income / Expense / Transfer -->
+                        <!-- Transaction Type -->
                         <div class="grid grid-cols-3 gap-2.5">
                             <label class="border-2 rounded-2xl p-2.5 flex items-center justify-center gap-1.5 cursor-pointer has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50 dark:has-[:checked]:bg-emerald-950/30 transition">
                                 <input type="radio" name="type" value="income" checked onchange="handleTypeChange()">
@@ -444,7 +440,7 @@
                             </label>
                         </div>
 
-                        <!-- Target Wallet Selection for Transfer -->
+                        <!-- Target Wallet Selection -->
                         <div id="transferTargetBox" class="hidden p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 space-y-1.5">
                             <label class="text-[11px] font-bold text-indigo-800 dark:text-indigo-300 flex items-center gap-1.5">
                                 <i class="fa-solid fa-arrow-right-arrow-left"></i> โอนไปยังกระเป๋าปลายทาง:
@@ -452,7 +448,7 @@
                             <select id="transferTargetWallet" class="w-full bg-white dark:bg-slate-800 border border-indigo-300 dark:border-indigo-700 text-xs font-semibold rounded-xl px-3 py-2.5 outline-none"></select>
                         </div>
 
-                        <!-- Payment Method: Cash vs Transfer -->
+                        <!-- Payment Method -->
                         <div class="grid grid-cols-2 gap-3" id="paymentMethodGroup">
                             <label class="border rounded-2xl p-2.5 flex items-center justify-center gap-2 cursor-pointer has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50 dark:has-[:checked]:bg-emerald-950/30 transition">
                                 <input type="radio" name="paymentMethod" value="cash" checked>
@@ -507,12 +503,12 @@
 
         </main>
 
-        <!-- Floating Action Button (FAB) สำหรับเพิ่มรายการอย่างรวดเร็วบนมือถือ/แท็บเล็ต -->
+        <!-- Floating Action Button (FAB) -->
         <button id="fabButton" onclick="switchTab('add')" class="lg:hidden fixed bottom-20 right-4 w-14 h-14 bg-emerald-600 active:scale-90 text-white rounded-2xl shadow-xl flex items-center justify-center z-40 transition-all border-2 border-white/20" title="เพิ่มรายการใหม่">
             <i class="fa-solid fa-plus text-xl"></i>
         </button>
 
-        <!-- Mobile Bottom Navigation Bar (แสดงเฉพาะหน้าจอมือถือ & แท็บเล็ตเล็ก < 1024px) -->
+        <!-- Mobile Bottom Navigation Bar -->
         <nav class="lg:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 fixed bottom-0 left-0 right-0 z-40 flex justify-around items-center py-2.5 px-3 shadow-lg">
             <button onclick="switchTab('dashboard')" id="nav-btn-dashboard" class="flex flex-col items-center flex-1 py-1 text-emerald-600">
                 <i class="fa-solid fa-chart-pie text-lg"></i>
@@ -534,7 +530,7 @@
 
     </div>
 
-    <!-- Modal จัดการกระเป๋าเงิน (Multi-Wallet Modal) -->
+    <!-- Modal จัดการกระเป๋าเงิน -->
     <div id="walletModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85vh] border border-slate-200 dark:border-slate-800">
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
@@ -565,41 +561,91 @@
         </div>
     </div>
 
-    <!-- Modal ตั้งค่า & นำเข้า-ส่งออกบัญชี -->
+    <!-- Modal ตั้งค่า & Cloud Sync (GitHub Repository Direct Sync) -->
     <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-md w-full space-y-3 border border-slate-200 dark:border-slate-800 shadow-2xl">
-            <div class="flex justify-between items-center mb-1">
-                <h3 class="font-bold text-sm">จัดการข้อมูล & นำเข้า-ส่งออกบัญชี</h3>
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 max-w-md w-full space-y-4 border border-slate-200 dark:border-slate-800 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-brands fa-github text-slate-900 dark:text-white"></i> ตั้งค่าเชื่อมต่อ GitHub Repo</h3>
                 <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
             </div>
+
+            <!-- กล่องตั้งค่า GitHub Repository Sync -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-2.5">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-database text-emerald-500"></i> สำรองลง Repository
+                    </span>
+                    <span id="gitStatusIndicator" class="text-[9px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold">ยังไม่ตั้งค่า</span>
+                </div>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">
+                    ระบบจะ Commit & Push ข้อมูลบัญชีทั้งหมดเป็นไฟล์ JSON ลงใน Git Repository ของคุณโดยอัตโนมัติ
+                </p>
+
+                <div>
+                    <label class="text-[10px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">GitHub Personal Access Token (PAT):</label>
+                    <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxx (สิทธิ์ 'repo')" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs rounded-xl px-3 py-2 outline-none font-mono">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">Username / เจ้าของ Repo:</label>
+                        <input type="text" id="ghOwnerInput" placeholder="เช่น your-username" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs rounded-xl px-3 py-2 outline-none font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">ชื่อ Repository:</label>
+                        <input type="text" id="ghRepoInput" placeholder="เช่น my-shop-app" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs rounded-xl px-3 py-2 outline-none font-mono">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">Branch (สาขา):</label>
+                        <input type="text" id="ghBranchInput" value="main" placeholder="main หรือ master" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs rounded-xl px-3 py-2 outline-none font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">Path เก็บไฟล์สำรอง:</label>
+                        <input type="text" id="ghPathInput" value="data/backup.json" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs rounded-xl px-3 py-2 outline-none font-mono">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button onclick="saveGitHubSettingsAndSync()" class="py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm border border-slate-700">
+                        <i class="fa-brands fa-github text-sm"></i> สำรองขึ้น Repo
+                    </button>
+                    <button onclick="restoreFromGitHubRepo()" class="py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> ดึงจาก Repo
+                    </button>
+                </div>
+            </div>
             
-            <label class="w-full text-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
-                <i class="fa-solid fa-upload"></i> นำเข้าไฟล์ (.xlsx, .csv, .json)
-                <input type="file" id="modularImportFile" accept=".xlsx,.xls,.csv,.json" class="hidden" onchange="importModularFile(event)">
-            </label>
+            <div class="space-y-2 pt-1">
+                <label class="w-full text-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                    <i class="fa-solid fa-upload"></i> นำเข้าไฟล์ (.xlsx, .csv, .json)
+                    <input type="file" id="modularImportFile" accept=".xlsx,.xls,.csv,.json" class="hidden" onchange="importModularFile(event)">
+                </label>
 
-            <button onclick="exportAccountingBookExcel()" class="w-full py-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded-xl text-xs font-bold text-left px-4 flex items-center justify-between transition hover:bg-emerald-100">
-                <span><i class="fa-solid fa-book-journal-whills mr-2 text-emerald-600 text-sm"></i> ส่งออกสมุดบัญชีมาตรฐาน (4 ชีท .xlsx)</span>
-                <span class="text-[10px] bg-emerald-200 dark:bg-emerald-800 px-2 py-0.5 rounded">แนะนำ</span>
-            </button>
+                <button onclick="exportAccountingBookExcel()" class="w-full py-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded-xl text-xs font-bold text-left px-4 flex items-center justify-between transition hover:bg-emerald-100">
+                    <span><i class="fa-solid fa-book-journal-whills mr-2 text-emerald-600 text-sm"></i> ส่งออกสมุดบัญชีมาตรฐาน (4 ชีท .xlsx)</span>
+                    <span class="text-[10px] bg-emerald-200 dark:bg-emerald-800 px-2 py-0.5 rounded">แนะนำ</span>
+                </button>
 
-            <button onclick="exportAccountingCSV()" class="w-full py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-semibold text-left px-4 text-slate-600 dark:text-slate-400 transition hover:bg-slate-200">
-                <i class="fa-solid fa-file-csv mr-2 text-slate-500"></i> สำรองข้อมูลแบบไฟล์ (.csv)
-            </button>
+                <button onclick="exportAccountingCSV()" class="w-full py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-semibold text-left px-4 text-slate-600 dark:text-slate-400 transition hover:bg-slate-200">
+                    <i class="fa-solid fa-file-csv mr-2 text-slate-500"></i> สำรองข้อมูลแบบไฟล์ (.csv)
+                </button>
+            </div>
 
-            <button onclick="closeSettingsModal()" class="w-full py-3 bg-slate-900 dark:bg-slate-800 text-white rounded-xl text-xs font-bold mt-2 hover:bg-slate-800 transition">ปิดหน้าต่าง</button>
+            <button onclick="closeSettingsModal()" class="w-full py-2.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl text-xs font-bold transition">ปิดหน้าต่าง</button>
         </div>
     </div>
 
     <!-- Alert Toast Box -->
     <div id="alertBox" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none w-11/12 max-w-sm">
         <div class="bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-xl text-xs flex items-center gap-3 border border-slate-700">
-            <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+            <i class="fa-solid fa-circle-check text-emerald-400 text-base" id="alertIcon"></i>
             <span id="alertMessage" class="font-medium"></span>
         </div>
     </div>
 
-    <!-- Main JavaScript Logic (พร้อมแก้ไขบัคครบทุกจุด) -->
     <script>
         const DISTINCT_COLORS = ['#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#10b981', '#3b82f6', '#f97316', '#14b8a6', '#a855f7', '#64748b', '#84cc16'];
         
@@ -702,7 +748,6 @@
             }
         };
 
-        // โหลดข้อมูลกระเป๋าเงิน
         let wallets = JSON.parse(localStorage.getItem('shop_wallets')) || [{ id: 'shop_main', name: 'กระเป๋าหน้าร้านดุนญา', type: 'business' }];
         wallets.forEach(w => { if(!w.type) w.type = 'business'; });
 
@@ -720,7 +765,6 @@
         let dayOfWeekChartInstance = null;
         let paretoChartInstance = null;
 
-        // แก้ไขความเสี่ยง XSS (Bug #6): Escape ข้อความก่อนเรนเดอร์ลง HTML
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
             return String(str)
@@ -736,20 +780,201 @@
             return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         }
 
-        function checkBackupReminder() {
-            const banner = document.getElementById('backupReminderBanner');
-            if (!banner) return;
-            const lastBackup = localStorage.getItem('shop_last_backup_date');
-            if (!lastBackup) {
-                const totalTx = Object.values(allTransactions).reduce((acc, list) => acc + (list ? list.length : 0), 0);
-                if (totalTx > 10) banner.classList.remove('hidden');
+        // ================= GitHub Repository Sync Core Logic =================
+        function loadGitHubSettings() {
+            const token = localStorage.getItem('dunya_git_token') || '';
+            const owner = localStorage.getItem('dunya_git_owner') || '';
+            const repo = localStorage.getItem('dunya_git_repo') || '';
+            const branch = localStorage.getItem('dunya_git_branch') || 'main';
+            const path = localStorage.getItem('dunya_git_path') || 'data/backup.json';
+
+            if (document.getElementById('ghTokenInput')) document.getElementById('ghTokenInput').value = token;
+            if (document.getElementById('ghOwnerInput')) document.getElementById('ghOwnerInput').value = owner;
+            if (document.getElementById('ghRepoInput')) document.getElementById('ghRepoInput').value = repo;
+            if (document.getElementById('ghBranchInput')) document.getElementById('ghBranchInput').value = branch;
+            if (document.getElementById('ghPathInput')) document.getElementById('ghPathInput').value = path;
+
+            const indicator = document.getElementById('gitStatusIndicator');
+            if (token && owner && repo) {
+                if (indicator) {
+                    indicator.textContent = 'เชื่อมต่อแล้ว';
+                    indicator.className = 'text-[9px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 font-bold';
+                }
+            }
+        }
+
+        function saveGitHubSettingsAndSync() {
+            const token = document.getElementById('ghTokenInput').value.trim();
+            const owner = document.getElementById('ghOwnerInput').value.trim();
+            const repo = document.getElementById('ghRepoInput').value.trim();
+            const branch = document.getElementById('ghBranchInput').value.trim() || 'main';
+            const path = document.getElementById('ghPathInput').value.trim() || 'data/backup.json';
+
+            if (!token || !owner || !repo) {
+                alert('กรุณากรอก GitHub Token, Owner และ Repository ให้ครบถ้วน');
                 return;
             }
-            const diffDays = Math.floor((new Date() - new Date(lastBackup)) / (1000 * 60 * 60 * 24));
-            if (diffDays >= 7) {
-                banner.classList.remove('hidden');
-            } else {
+
+            localStorage.setItem('dunya_git_token', token);
+            localStorage.setItem('dunya_git_owner', owner);
+            localStorage.setItem('dunya_git_repo', repo);
+            localStorage.setItem('dunya_git_branch', branch);
+            localStorage.setItem('dunya_git_path', path);
+
+            syncToGitHubRepo();
+        }
+
+        // ฟังก์ชันแปลงข้อความภาษาไทยเป็น Base64 ที่รองรับ UTF-8 อย่างสมบูรณ์
+        function utf8ToBase64(str) {
+            return window.btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                return String.fromCharCode('0x' + p1);
+            }));
+        }
+
+        function base64ToUtf8(str) {
+            return decodeURIComponent(Array.prototype.map.call(window.atob(str), function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+        }
+
+        async function syncToGitHubRepo() {
+            const token = localStorage.getItem('dunya_git_token') || (document.getElementById('ghTokenInput') ? document.getElementById('ghTokenInput').value.trim() : '');
+            const owner = localStorage.getItem('dunya_git_owner') || (document.getElementById('ghOwnerInput') ? document.getElementById('ghOwnerInput').value.trim() : '');
+            const repo = localStorage.getItem('dunya_git_repo') || (document.getElementById('ghRepoInput') ? document.getElementById('ghRepoInput').value.trim() : '');
+            const branch = localStorage.getItem('dunya_git_branch') || 'main';
+            const path = localStorage.getItem('dunya_git_path') || 'data/backup.json';
+
+            if (!token || !owner || !repo) {
+                openSettingsModal();
+                showAlert('กรุณากรอกข้อมูล GitHub Repository ในการตั้งค่าก่อน');
+                return;
+            }
+
+            showAlert('กำลังส่ง Commit ขึ้น GitHub...');
+
+            const payloadData = {
+                app: "Dunya Accounting Pro",
+                updatedAt: new Date().toISOString(),
+                wallets: wallets,
+                allTransactions: allTransactions
+            };
+
+            const contentBase64 = utf8ToBase64(JSON.stringify(payloadData, null, 2));
+            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+            try {
+                // 1. ดึง sha ของไฟล์เดิมเพื่อนำมาอัปเดตทับ (ถ้ามี)
+                let sha = null;
+                const getRes = await fetch(`${apiUrl}?ref=${branch}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (getRes.ok) {
+                    const fileData = await getRes.json();
+                    sha = fileData.sha;
+                }
+
+                // 2. ส่งคำสั่ง PUT เพื่อ Commit ไฟล์ลง Repository
+                const putBody = {
+                    message: `Backup accounting database: ${new Date().toLocaleString('th-TH')}`,
+                    content: contentBase64,
+                    branch: branch
+                };
+                if (sha) putBody.sha = sha;
+
+                const putRes = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(putBody)
+                });
+
+                if (!putRes.ok) {
+                    const errObj = await putRes.json();
+                    throw new Error(errObj.message || 'ส่งข้อมูลขึ้น GitHub ไม่สำเร็จ');
+                }
+
+                const nowStr = new Date().toLocaleString('th-TH');
+                localStorage.setItem('dunya_last_git_sync', nowStr);
+                loadGitHubSettings();
+                checkGitHubReminder();
+                showAlert('สำรองข้อมูลขึ้น GitHub เรียบร้อยแล้ว!');
+            } catch (err) {
+                console.error(err);
+                alert('เกิดข้อผิดพลาดในการสำรองขึ้น GitHub: ' + err.message);
+            }
+        }
+
+        async function restoreFromGitHubRepo() {
+            const token = localStorage.getItem('dunya_git_token') || (document.getElementById('ghTokenInput') ? document.getElementById('ghTokenInput').value.trim() : '');
+            const owner = localStorage.getItem('dunya_git_owner') || (document.getElementById('ghOwnerInput') ? document.getElementById('ghOwnerInput').value.trim() : '');
+            const repo = localStorage.getItem('dunya_git_repo') || (document.getElementById('ghRepoInput') ? document.getElementById('ghRepoInput').value.trim() : '');
+            const branch = localStorage.getItem('dunya_git_branch') || 'main';
+            const path = localStorage.getItem('dunya_git_path') || 'data/backup.json';
+
+            if (!token || !owner || !repo) {
+                alert('กรุณากรอก Token, Owner และ Repo ให้ครบถ้วน');
+                return;
+            }
+
+            if (!confirm('ต้องการดึงข้อมูลล่าสุดจาก GitHub มาแทนที่ในเครื่องนี้ใช่หรือไม่?')) {
+                return;
+            }
+
+            showAlert('กำลังดาวน์โหลดข้อมูลจาก GitHub...');
+
+            try {
+                const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+                const res = await fetch(apiUrl, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!res.ok) throw new Error('ไม่พบไฟล์สำรองในตำแหน่งที่ระบุบน Repository');
+
+                const fileJson = await res.json();
+                const contentRaw = base64ToUtf8(fileJson.content.replace(/\s/g, ''));
+                const backupObj = JSON.parse(contentRaw);
+
+                if (!backupObj.wallets || !backupObj.allTransactions) {
+                    throw new Error('โครงสร้างไฟล์สำรองไม่ถูกต้อง');
+                }
+
+                wallets = backupObj.wallets;
+                allTransactions = backupObj.allTransactions;
+
+                localStorage.setItem('shop_wallets', JSON.stringify(wallets));
+                localStorage.setItem('shop_all_transactions', JSON.stringify(allTransactions));
+                localStorage.setItem('dunya_last_git_sync', new Date().toLocaleString('th-TH'));
+
+                applyWalletThemeAndLabels();
+                renderDashboard();
+                closeSettingsModal();
+                showAlert('ดึงข้อมูลจาก GitHub เรียบร้อยแล้ว');
+            } catch (err) {
+                console.error(err);
+                alert('ดึงข้อมูลล้มเหลว: ' + err.message);
+            }
+        }
+
+        function checkGitHubReminder() {
+            const banner = document.getElementById('gitReminderBanner');
+            const txt = document.getElementById('gitLastSyncText');
+            if (!banner) return;
+            const lastSync = localStorage.getItem('dunya_last_git_sync');
+            if (lastSync) {
+                if (txt) txt.textContent = `สำรองล่าสุด: ${lastSync}`;
                 banner.classList.add('hidden');
+            } else {
+                banner.classList.remove('hidden');
             }
         }
 
@@ -773,7 +998,8 @@
 
                 applyWalletThemeAndLabels();
                 renderDashboard();
-                checkBackupReminder();
+                loadGitHubSettings();
+                checkGitHubReminder();
 
                 document.addEventListener('click', (e) => {
                     const dd = document.getElementById('suggestionsDropdown');
@@ -805,12 +1031,10 @@
             const bucketBox = document.getElementById('bucketContainer');
             if (bucketBox) bucketBox.className = `bg-gradient-to-br ${typeConfig.bucketCardGradient} text-white p-4 sm:p-5 rounded-3xl shadow-lg space-y-3.5 transition-all duration-300`;
 
-            // Mobile Header Elements
             document.getElementById('activeWalletTitle').textContent = current.name;
             document.getElementById('activeWalletBadge').textContent = typeConfig.badgeName;
             document.getElementById('activeWalletIcon').className = `fa-solid ${typeConfig.icon} text-white text-xs`;
 
-            // Desktop Sidebar Elements
             const deskTitle = document.getElementById('deskActiveWalletTitle');
             const deskType = document.getElementById('deskActiveWalletType');
             const deskIcon = document.getElementById('deskActiveWalletIcon');
@@ -920,7 +1144,6 @@
             });
         }
 
-        // ================= Wallet Management Functions (แก้บัค #1: ไม่มีประกาศซ้ำ) =================
         function openWalletModal() { 
             const m = document.getElementById('walletModal'); 
             if (m) {
@@ -935,7 +1158,10 @@
 
         function openSettingsModal() { 
             const m = document.getElementById('settingsModal'); 
-            if (m) m.classList.remove('hidden'); 
+            if (m) {
+                loadGitHubSettings();
+                m.classList.remove('hidden'); 
+            }
         }
         function closeSettingsModal() { 
             const m = document.getElementById('settingsModal'); 
@@ -1072,7 +1298,6 @@
             }
         }
 
-        // ================= Individual Transaction Edit & Delete =================
         function editTransaction(txId) {
             const txs = allTransactions[activeWalletId] || [];
             const tx = txs.find(t => t.id === txId);
@@ -1303,7 +1528,6 @@
             dd.classList.remove('hidden');
         }
 
-        // ================= บันทึกรายการ =================
         function saveTransaction(e) {
             e.preventDefault();
             const editId = document.getElementById('editIndex').value;
@@ -1320,7 +1544,6 @@
 
             if(!allTransactions[activeWalletId]) allTransactions[activeWalletId] = [];
 
-            // โอนเงินข้ามกระเป๋า (Cross-Wallet Transfer)
             if (type === 'transfer') {
                 const targetWalletId = document.getElementById('transferTargetWallet').value;
                 if (!targetWalletId) {
@@ -1367,7 +1590,6 @@
 
                 showAlert(`โอนเงิน ฿${amount} ไปยัง ${targetWallet.name} เรียบร้อยแล้ว`);
             } else {
-                // บันทึกรายรับ/รายจ่ายปกติ
                 if (editId !== "-1") {
                     const idx = allTransactions[activeWalletId].findIndex(t => t.id === editId);
                     if (idx !== -1) {
@@ -1404,7 +1626,6 @@
             allTransactions[activeWalletId].sort((a, b) => new Date(b.date || '') - new Date(a.date || ''));
             localStorage.setItem('shop_all_transactions', JSON.stringify(allTransactions));
             
-            // รีเซ็ตค่าเฉพาะในฟอร์ม พร้อมกรอกรายการถัดไปต่อเนื่อง
             document.getElementById('editIndex').value = "-1";
             document.getElementById('txDescription').value = '';
             document.getElementById('txAmount').value = '';
@@ -1422,7 +1643,6 @@
             if (descInput) descInput.focus();
         }
 
-        // ================= Dashboard & Calculation (แก้บัค #2 และ #3) =================
         function renderDashboard() {
             try {
                 const currentWallet = wallets.find(w => w.id === activeWalletId) || wallets[0];
@@ -1435,7 +1655,6 @@
                 let bucket1Cost = 0;
                 let bucket2Cost = 0;
 
-                // รวมยอดทั้งหมดในกระเป๋าสำหรับคิดยอดคงเหลือจริง (Total Balance)
                 let walletCashIn = 0, walletCashOut = 0, walletTransferIn = 0, walletTransferOut = 0;
                 (allTransactions[activeWalletId] || []).forEach(tx => {
                     const amt = parseFloat(tx.amount) || 0;
@@ -1451,22 +1670,17 @@
                 });
                 const actualWalletBalance = (walletCashIn + walletTransferIn) - (walletCashOut + walletTransferOut);
 
-                // ประมวลผลช่วงวันที่ที่เลือก
                 filtered.forEach(tx => {
                     const amt = parseFloat(tx.amount) || 0;
                     const pMethod = tx.paymentMethod || 'cash';
                     const isIncome = (tx.type === 'income' || tx.type === 'รายรับ');
                     const isExpense = (tx.type === 'expense' || tx.type === 'รายจ่าย');
-                    const isTransferIn = (tx.type === 'โอนเข้า');
-                    const isTransferOut = (tx.type === 'โอนออก');
 
                     if (isIncome) {
                         totalRevenue += amt;
-                        // แก้บัค #2: เฉพาะรายรับปกติเท่านั้นที่นำมาสรุปกระทบยอดหน้าร้าน
                         if (pMethod === 'transfer') transferIn += amt; else cashIn += amt;
                     } else if (isExpense) {
                         totalExpense += amt;
-                        // แก้บัค #2: เฉพาะรายจ่ายปกติเท่านั้นที่นำมาสรุปกระทบยอดหน้าร้าน
                         if (pMethod === 'transfer') transferOut += amt; else cashOut += amt;
 
                         const cat = tx.category || '';
@@ -1496,13 +1710,11 @@
                 setTxt('kpiProfitMargin', isBiz ? `อัตรากำไร: ${margin}%` : `อัตราการออม: ${margin}%`);
                 setTxt('kpiWalletBalance', formatCurrency(actualWalletBalance));
 
-                // สรุปยอดเงินสด / เงินโอน หน้าร้าน
                 setTxt('kpiCashNet', formatCurrency(cashIn - cashOut));
                 setTxt('kpiCashDetail', `เข้า +${formatNumber(cashIn)} | ออก -${formatNumber(cashOut)}`);
                 setTxt('kpiTransferNet', formatCurrency(transferIn - transferOut));
                 setTxt('kpiTransferDetail', `เข้า +${formatNumber(transferIn)} | ออก -${formatNumber(transferOut)}`);
 
-                // แก้บัค #3: คำนวณเปอร์เซ็นต์ของ 3 กองอย่างแม่นยำ ไม่เพี้ยนหรือทะลุ 100%
                 if (isBiz) {
                     const remainingProfit = totalRevenue - (bucket1Cost + bucket2Cost);
                     const displayProfit = remainingProfit > 0 ? remainingProfit : 0;
@@ -1555,7 +1767,6 @@
             renderDashboard();
         }
 
-        // แก้บัค #4: การกรองวันที่ในส่วน 'thisWeek' ให้ตรงกับปฏิทินจริง (จันทร์-อาทิตย์)
         function filterTransactions() {
             const txs = allTransactions[activeWalletId] || [];
             const filterTypeEl = document.getElementById('typeFilter');
@@ -1569,8 +1780,7 @@
             const now = new Date();
             const todayStr = getTodayDate();
 
-            // คำนวณวันจันทร์และวันอาทิตย์ของสัปดาห์ปัจจุบัน
-            const currentDayOfWeek = now.getDay(); // 0 คือวันอาทิตย์, 1 คือวันจันทร์
+            const currentDayOfWeek = now.getDay();
             const distanceToMonday = (currentDayOfWeek + 6) % 7;
             const monday = new Date(now);
             monday.setDate(now.getDate() - distanceToMonday);
@@ -1602,7 +1812,6 @@
                 if (dateFilter === 'today') {
                     if (txDateStr !== todayStr) return false;
                 } else if (dateFilter === 'thisWeek') {
-                    // กรองตามวันจันทร์ถึงอาทิตย์จริง
                     if (txDateStr < mondayStr || txDateStr > sundayStr) return false;
                 } else if (dateFilter === 'thisMonth') {
                     const txPrefix = txDateStr.substring(0, 7);
@@ -1619,7 +1828,6 @@
             });
         }
 
-        // แสดงผลรายการประวัติ (แก้บัค #6: ใช้ escapeHtml ป้องกัน XSS)
         function renderHistoryList(txs) {
             const list = document.getElementById('transactionList');
             const empty = document.getElementById('emptyState');
@@ -1907,7 +2115,6 @@
             }
         }
 
-        // ================= ส่งออกสมุดบัญชีมาตรฐาน 4 ชีท (.xlsx) =================
         function exportAccountingBookExcel() {
             if (typeof XLSX === 'undefined') {
                 showAlert('กำลังโหลดไลบรารี Excel หรือเปิดโหมดออฟไลน์ จะสลับเป็น CSV แทน');
@@ -2090,9 +2297,6 @@
 
             const fileName = `Accounting_Book_${walletObj.name}_${getTodayDate()}.xlsx`;
             XLSX.writeFile(wb, fileName);
-            
-            localStorage.setItem('shop_last_backup_date', getTodayDate());
-            checkBackupReminder();
             showAlert('ส่งออกสมุดบัญชีมาตรฐานสำเร็จ');
         }
 
@@ -2125,12 +2329,8 @@
             link.href = URL.createObjectURL(blob);
             link.download = `backup_${getTodayDate()}.csv`;
             link.click();
-
-            localStorage.setItem('shop_last_backup_date', getTodayDate());
-            checkBackupReminder();
         }
 
-        // ================= แก้บัค #5: ล้างเครื่องหมายจุลภาคในการ Import Excel =================
         function importModularFile(e) {
             const file = e.target.files[0];
             if(!file) return;
@@ -2172,7 +2372,6 @@
                             if (typeVal.includes('รับ') || typeVal.toLowerCase().includes('income')) parsedType = 'income';
                             else if (typeVal.includes('โอน')) parsedType = typeVal;
 
-                            // แก้บัค #5: ป้องกันกรณีตัวเลขมีจุลภาค เช่น "1,500.00"
                             let parsedAmount = 0;
                             if (amtIdx !== -1 && r[amtIdx] !== undefined) {
                                 const cleanAmtStr = String(r[amtIdx]).replace(/,/g, '').trim();
