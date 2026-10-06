@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Smart Accounting & Multi-Wallet Pro">
+    <meta property="og:title" content="Dunya Smart Accounting & Multi-Wallet Pro">
+    <meta property="og:description" content="Smart Accounting & Multi-Wallet Pro">
     <title>Dunya Smart Accounting & Multi-Wallet Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -229,6 +232,12 @@
                                 <p id="bucket3Desc" class="text-[10px] text-slate-400 mt-1">ปันผล/สำรองฉุกเฉิน</p>
                             </div>
                             <h4 id="bucket3Amount" class="text-base sm:text-lg font-bold text-emerald-300 num-font mt-2">฿0.00</h4>
+                            <div class="mt-2 flex flex-col gap-1">
+                                <button onclick="syncBucketToPortfolio()" class="w-full text-[9px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white py-1.5 rounded-lg transition">
+                                    <i class="fa-solid fa-sync mr-1"></i> Sync ไปพอร์ตลงทุน
+                                </button>
+                                <p id="portfolioSyncStatus" class="text-[9px] text-emerald-300/70 text-center">ยังไม่ได้ Sync</p>
+                            </div>
                         </div>
                     </div>
                 </div>

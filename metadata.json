@@ -1,0 +1,5 @@
+{
+  "name": "Dunya Smart Accounting & Multi-Wallet Pro",
+  "description": "Smart Accounting & Multi-Wallet Pro",
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

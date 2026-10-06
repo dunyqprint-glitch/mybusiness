@@ -1,10 +1,10 @@
 {
   "app": "Dunya Accounting Pro",
-  "updatedAt": "2026-10-06T03:52:27.772Z",
+  "updatedAt": "2026-10-05T23:16:38.556Z",
   "wallets": [
     {
       "id": "shop_main",
-      "name": "กระเป๋าหน้าร้านดุนญา",
+      "name": "ร้านดุนญาไก่ทอด",
       "type": "business"
     }
   ],

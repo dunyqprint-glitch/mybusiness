@@ -244,6 +244,72 @@ async function syncToGitHubRepo() {
     }
 }
 
+// Sync Bucket 3 to Portfolio
+async function syncBucketToPortfolio() {
+    const token = localStorage.getItem('dunya_git_token');
+    const owner = localStorage.getItem('dunya_git_owner');
+    const repo = localStorage.getItem('dunya_git_repo');
+    const branch = localStorage.getItem('dunya_git_branch') || 'main';
+    const path = 'data/shared_sync.json'; // Shared path
+
+    if (!token || !owner || !repo) {
+        showAlert('กรุณาตั้งค่า GitHub ในหน้าการตั้งค่าก่อน');
+        return;
+    }
+
+    const netProfit = parseFloat(document.getElementById('bucket3Amount').innerText.replace(/[^0-9.-]+/g, '')) || 0;
+    const payloadData = {
+        profitBucket3: netProfit,
+        lastUpdated: new Date().toISOString()
+    };
+
+    showAlert('กำลัง Sync ข้อมูลไปยังพอร์ตลงทุน...');
+
+    const contentBase64 = utf8ToBase64(JSON.stringify(payloadData, null, 2));
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+    try {
+        let sha = null;
+        const getRes = await fetch(`${apiUrl}?ref=${branch}`, {
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (getRes.ok) {
+            const fileData = await getRes.json();
+            sha = fileData.sha;
+        }
+
+        const putBody = {
+            message: `Sync Net Profit to Portfolio: ${new Date().toLocaleString('th-TH')}`,
+            content: contentBase64,
+            branch: branch
+        };
+        if (sha) putBody.sha = sha;
+
+        const putRes = await fetch(apiUrl, {
+            method: 'PUT',
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify(putBody)
+        });
+
+        if (!putRes.ok) throw new Error('Sync ล้มเหลว');
+
+        localStorage.setItem('dunya_last_portfolio_sync', new Date().toLocaleString('th-TH'));
+        updatePortfolioSyncStatus();
+        showAlert('Sync ข้อมูลกำไรไปพอร์ตลงทุนสำเร็จ!');
+    } catch (err) {
+        console.error(err);
+        alert('เกิดข้อผิดพลาดในการ Sync: ' + err.message);
+    }
+}
+
+function updatePortfolioSyncStatus() {
+    const lastSync = localStorage.getItem('dunya_last_portfolio_sync');
+    const statusEl = document.getElementById('portfolioSyncStatus');
+    if (statusEl) {
+        statusEl.textContent = lastSync ? `อัปเดตล่าสุด: ${lastSync}` : 'ยังไม่ได้ Sync';
+    }
+}
+
 async function restoreFromGitHubRepo() {
     const token = localStorage.getItem('dunya_git_token') || (document.getElementById('ghTokenInput') ? document.getElementById('ghTokenInput').value.trim() : '');
     const owner = localStorage.getItem('dunya_git_owner') || (document.getElementById('ghOwnerInput') ? document.getElementById('ghOwnerInput').value.trim() : '');
@@ -291,6 +357,7 @@ async function restoreFromGitHubRepo() {
     }
 }
 
+
 function checkGitHubReminder() {
     const banner = document.getElementById('gitReminderBanner');
     const txt = document.getElementById('gitLastSyncText');
@@ -326,6 +393,7 @@ window.onload = function() {
         renderDashboard();
         loadGitHubSettings();
         checkGitHubReminder();
+        updatePortfolioSyncStatus();
 
         document.addEventListener('click', (e) => {
             const dd = document.getElementById('suggestionsDropdown');
